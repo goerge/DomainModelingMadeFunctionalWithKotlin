@@ -107,3 +107,68 @@ data class Payment(
 fun payInvoice(unpaidInvoice: UnpaidInvoice): PaidInvoice {}
 
 fun convertPaymentCurrency(payment: Payment, currency: Currency): Payment {}
+
+// MODELING OPTIONAL VALUES
+
+// monad
+sealed class Option<T>
+data class Some<T>(val value: T) : Option<T>()
+class None<T>() : Option<T>() // data class requires at least one member, object cannot be generic
+
+// nullable value
+var nullableString: String? = null
+
+data class PersonalName(
+    val firstName: String,
+    val middleInitial: Option<String>,
+    val lastName: String
+)
+
+data class PersonalName(
+    val firstName: String,
+    val middleInitial: String?,
+    val lastName: String
+)
+
+
+// MODELING ERRORS
+sealed class Result<SUCCESS, FAILURE>
+data class Ok<T>(val success: T) : Result<T, Nothing>()
+data class Error<T>(val failure: T) : Result<Nothing, T>()
+
+fun payInvoice(unpaidInvoice: UnpaidInvoice, payment: Payment): Result<PaidInvoice, PaymentError> {}
+
+enum class PaymentError {
+    CardTypeNotRecognized,
+    PaymentRejected,
+    PaymentProviderOffline
+}
+
+// MODELING NO VALUE AT ALL
+fun saveCustomer(customer: Customer): Unit {}
+
+fun nextRandom(): Int {}
+
+// MODELING LISTS AND COLLECTIONS
+data class Order(
+    val orderId: OrderId,
+    val lines: List<OrderLine>
+)
+
+val aList = listOf(1, 2, 3)
+
+val aNewList = listOf(0) + aList
+
+fun <T> T.cons(tail: List<T>): List<T> = listOf(this) + tail
+
+val anotherList = 0.cons(aList) // new list is [0, 1, 2, 3]
+
+// Kotlin does not support list deconstruction in pattern matching
+fun <T> printList(list: List<T>) {
+    return when(list.size) {
+        0 -> println("list is empty")
+        1 -> println("list has on element ${list[0]}")
+        2 -> println("list has two elements: ${list[0]} and ${list[1]}")
+        else -> println("list has more than two elements")
+    }
+}
