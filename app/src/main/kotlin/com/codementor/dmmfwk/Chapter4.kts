@@ -116,6 +116,8 @@ data class Payment(
     val method: PaymentMethod
 )
 
+typealias UnpaidInvoice = Nothing
+typealias PaidInvoice = Nothing
 typealias PayInvoice = (unpaidInvoice: UnpaidInvoice) -> PaidInvoice
 typealias ConvertPaymentCurrency = (payment: Payment, currency: Currency) -> Payment
 
@@ -137,7 +139,7 @@ data class PersonalName(
     val lastName: String
 )
 
-data class PersonalName(
+data class PersonalNameNullable(
     val firstName: String,
     val middleInitial: String?,
     val lastName: String
@@ -157,11 +159,14 @@ enum class PaymentError {
 }
 
 // MODELING NO VALUE AT ALL
+typealias Customer = Nothing
 typealias SaveCustomer = (customer: Customer) -> Unit
 
 typealias NextRandom = () -> Int
 
 // MODELING LISTS AND COLLECTIONS
+typealias OrderId = Nothing
+typealias OrderLine = Nothing
 data class Order(
     val orderId: OrderId,
     val lines: List<OrderLine>
