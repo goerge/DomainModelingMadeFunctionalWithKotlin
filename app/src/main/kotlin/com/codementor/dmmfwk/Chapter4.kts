@@ -27,10 +27,13 @@ data class FruitSalad(
 )
 
 // "OR" TYPES
-sealed class FruitSnack
-data class Apple(val apple: AppleVariety) : FruitSnack()
-data class Banana(val apple: BananaVariety) : FruitSnack()
-data class Cherries(val apple: CherryVariety) : FruitSnack()
+sealed interface FruitSnack
+@JvmInline
+value class Apple(val apple: AppleVariety) : FruitSnack
+@JvmInline
+value class Banana(val apple: BananaVariety) : FruitSnack
+@JvmInline
+value class Cherries(val apple: CherryVariety) : FruitSnack
 
 enum class AppleVariety {
     GoldenDelicious,
@@ -50,7 +53,8 @@ enum class CherryVariety {
 }
 
 // SIMPLE TYPES
-data class ProductCode(val productCode: String)
+@JvmInline
+value class ProductCode(val productCode: String)
 
 // Working with Kotlin Types
 data class Person(val first: String, val last: String)
@@ -61,9 +65,11 @@ val (first, last) = aPerson
 // val first = aPerson.first
 // val last = aPerson.last
 
-sealed class OrderQuantity
-data class UnitQuantity(val quantity: Int) : OrderQuantity()
-data class KilogramQuantity(val quantity: BigDecimal) : OrderQuantity()
+sealed interface OrderQuantity
+@JvmInline
+value class UnitQuantity(val quantity: Int) : OrderQuantity
+@JvmInline
+value class KilogramQuantity(val quantity: BigDecimal) : OrderQuantity
 
 val anOrderQtyInUnits = UnitQuantity(10)
 val anOrderQtyInKg = KilogramQuantity("2.5".toBigDecimal())
@@ -79,20 +85,26 @@ printQuantity(anOrderQtyInUnits)
 printQuantity(anOrderQtyInKg)
 
 // Building a Domain Model by Composing Types
-data class CheckNumber(val checkNumber: Int)
-data class CardNumber(val cardNumber: String)
+@JvmInline
+value class CheckNumber(val checkNumber: Int)
+@JvmInline
+value class CardNumber(val cardNumber: String)
 enum class CardType {
     Visa,
     Mastercard
 }
+
 data class CreditCardInfo(val cardType: CardType, val cardNumber: CardNumber)
 
-sealed class PaymentMethod
-object Cash : PaymentMethod()
-data class Check(val checkNumber: CheckNumber) : PaymentMethod()
-data class Card(val creditCardInfo: CreditCardInfo) : PaymentMethod()
+sealed interface PaymentMethod
+object Cash : PaymentMethod
+@JvmInline
+value class Check(val checkNumber: CheckNumber) : PaymentMethod
+@JvmInline
+value class Card(val creditCardInfo: CreditCardInfo) : PaymentMethod
 
-data class PaymentAmount(val paymentAmount: BigDecimal)
+@JvmInline
+value class PaymentAmount(val paymentAmount: BigDecimal)
 enum class Currency {
     EUR,
     USD
@@ -104,16 +116,17 @@ data class Payment(
     val method: PaymentMethod
 )
 
-fun payInvoice(unpaidInvoice: UnpaidInvoice): PaidInvoice {}
-
-fun convertPaymentCurrency(payment: Payment, currency: Currency): Payment {}
+typealias PayInvoice = (unpaidInvoice: UnpaidInvoice) -> PaidInvoice
+typealias ConvertPaymentCurrency = (payment: Payment, currency: Currency) -> Payment
 
 // MODELING OPTIONAL VALUES
 
 // monad
-sealed class Option<T>
-data class Some<T>(val value: T) : Option<T>()
-class None<T>() : Option<T>() // data class requires at least one member, object cannot be generic
+sealed interface Option<out T>
+data class Some<T>(val value: T) : Option<T>
+object None : Option<Nothing> {
+    override fun toString(): String = "None"
+}
 
 // nullable value
 var nullableString: String? = null
@@ -130,13 +143,12 @@ data class PersonalName(
     val lastName: String
 )
 
-
 // MODELING ERRORS
 sealed class Result<SUCCESS, FAILURE>
 data class Ok<T>(val success: T) : Result<T, Nothing>()
 data class Error<T>(val failure: T) : Result<Nothing, T>()
 
-fun payInvoice(unpaidInvoice: UnpaidInvoice, payment: Payment): Result<PaidInvoice, PaymentError> {}
+typealias PayInvoice = (unpaidInvoice: UnpaidInvoice, payment: Payment) -> Result<PaidInvoice, PaymentError>
 
 enum class PaymentError {
     CardTypeNotRecognized,
@@ -145,9 +157,9 @@ enum class PaymentError {
 }
 
 // MODELING NO VALUE AT ALL
-fun saveCustomer(customer: Customer): Unit {}
+typealias SaveCustomer = (customer: Customer) -> Unit
 
-fun nextRandom(): Int {}
+typealias NextRandom = () -> Int
 
 // MODELING LISTS AND COLLECTIONS
 data class Order(
@@ -165,7 +177,7 @@ val anotherList = 0.cons(aList) // new list is [0, 1, 2, 3]
 
 // Kotlin does not support list deconstruction in pattern matching
 fun <T> printList(list: List<T>) {
-    return when(list.size) {
+    return when (list.size) {
         0 -> println("list is empty")
         1 -> println("list has on element ${list[0]}")
         2 -> println("list has two elements: ${list[0]} and ${list[1]}")
