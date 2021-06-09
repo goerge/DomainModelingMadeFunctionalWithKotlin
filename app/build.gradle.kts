@@ -20,11 +20,20 @@ dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:30.0-jre")
 
+    // More functional Kotlin (:
+    implementation("io.arrow-kt:arrow-core:0.13.2")
+
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    // Use the Kotlin JUnit integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    testImplementation("io.strikt:strikt-core:0.31.0")
+    testImplementation("io.strikt:strikt-arrow:0.31.0")
+
     implementation(kotlin("script-runtime"))
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
