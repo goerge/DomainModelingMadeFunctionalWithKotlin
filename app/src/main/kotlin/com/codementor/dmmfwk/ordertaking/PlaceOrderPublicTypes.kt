@@ -6,18 +6,18 @@ import java.math.BigDecimal
 import java.net.URI
 
 data class UnvalidatedCustomerInfo(
-    val firstName: String,
-    val lastName: String,
-    val emailAddress: String
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val emailAddress: String? = null
 )
 
 data class UnvalidatedAddress(
-    val addressLine1: String,
-    val addressLine2: String,
-    val addressLine3: String,
-    val addressLine4: String,
-    val city: String,
-    val zipCode: String
+    val addressLine1: String? = null,
+    val addressLine2: String? = null,
+    val addressLine3: String? = null,
+    val addressLine4: String? = null,
+    val city: String? = null,
+    val zipCode: String? = null
 )
 
 data class UnvalidatedOrderLine(
@@ -27,11 +27,11 @@ data class UnvalidatedOrderLine(
 )
 
 data class UnvalidatedOrder(
-    val orderId: String,
-    val customerInfo: UnvalidatedCustomerInfo,
-    val shippingAddress: UnvalidatedAddress,
-    val billingAddress: UnvalidatedAddress,
-    val lines: List<UnvalidatedOrderLine>
+    val orderId: String?,
+    val customerInfo: UnvalidatedCustomerInfo = UnvalidatedCustomerInfo(),
+    val shippingAddress: UnvalidatedAddress = UnvalidatedAddress(),
+    val billingAddress: UnvalidatedAddress = UnvalidatedAddress(),
+    val lines: List<UnvalidatedOrderLine> = emptyList()
 )
 
 sealed class PlacedOrderEvent
