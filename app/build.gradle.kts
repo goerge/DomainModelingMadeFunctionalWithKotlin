@@ -20,6 +20,9 @@ dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:30.0-jre")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
+
     // More functional Kotlin (:
     implementation("io.arrow-kt:arrow-core:0.13.2")
 
@@ -36,4 +39,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=org.mylibrary.OptInAnnotation"
 }

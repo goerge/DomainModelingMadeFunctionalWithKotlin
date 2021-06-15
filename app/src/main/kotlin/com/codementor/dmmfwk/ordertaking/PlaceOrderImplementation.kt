@@ -1,7 +1,6 @@
 package com.codementor.dmmfwk.ordertaking
 
-import arrow.core.Either
-import arrow.core.Option
+import arrow.core.*
 import arrow.core.computations.either
 
 typealias CheckProductCodeExists =
@@ -12,7 +11,14 @@ enum class AddressValidationError {
     AddressNotFound
 }
 
-data class CheckedAddress(val address: UnvalidatedAddress)
+data class CheckedAddress(
+    val addressLine1: String,
+    val addressLine2: String? = null,
+    val addressLine3: String? = null,
+    val addressLine4: String? = null,
+    val city: String,
+    val zipCode: String
+)
 
 typealias CheckAddressExists =
     (UnvalidatedAddress) -> Either<AddressValidationError, CheckedAddress>
@@ -71,12 +77,12 @@ suspend fun toCustomerInfo (unvalidatedCustomerInfo: UnvalidatedCustomerInfo): E
             .mapLeft(::ValidationError)
             .bind()
 
-        val lastName = unvalidatedCustomerInfo.firstName
+        val lastName = unvalidatedCustomerInfo.lastName
             .let(String50::create)
             .mapLeft(::ValidationError)
             .bind()
 
-        val emailAddress = unvalidatedCustomerInfo.firstName
+        val emailAddress = unvalidatedCustomerInfo.emailAddress
             .let(EmailAddress::create)
             .mapLeft(::ValidationError)
             .bind()
@@ -84,5 +90,47 @@ suspend fun toCustomerInfo (unvalidatedCustomerInfo: UnvalidatedCustomerInfo): E
         CustomerInfo(
             name = PersonalName(firstName = firstName, lastName = lastName),
             emailAddress = emailAddress
+        )
+    }
+
+suspend fun toAddress(checkedAddress: CheckedAddress): Either<ValidationError, Address> =
+    either {
+        val addressLine1 = checkedAddress.addressLine1
+            .let(String50::create)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        val addressLine2 = checkedAddress.addressLine2
+            .let(String50::createOption)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        val addressLine3 = checkedAddress.addressLine3
+            .let(String50::createOption)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        val addressLine4 = checkedAddress.addressLine4
+            .let(String50::createOption)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        val city = checkedAddress.city
+            .let(String50::create)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        val zipCode = checkedAddress.zipCode
+            .let(ZipCode::create)
+            .mapLeft(::ValidationError)
+            .bind()
+
+        Address(
+            addressLine1 = addressLine1,
+            addressLine2 = addressLine2,
+            addressLine3 = addressLine3,
+            addressLine4 = addressLine4,
+            city = city,
+            zipCode = zipCode
         )
     }
