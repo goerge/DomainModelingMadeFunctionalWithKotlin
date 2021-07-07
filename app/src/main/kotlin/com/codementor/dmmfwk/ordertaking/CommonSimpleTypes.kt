@@ -38,8 +38,9 @@ value class ZipCode private constructor(val value: String) {
 @JvmInline
 value class OrderId private constructor(val value: String) {
     companion object {
-        fun create(value: String): Validated<String, OrderId> =
-            OrderId(value).valid()
+        fun create(value: String?): Validated<String, OrderId> =
+            if (value == null) "OrderId is invalid".invalid()
+            else OrderId(value).valid()
     }
 }
 
@@ -90,8 +91,12 @@ sealed class ProductCode {
             }
     }
 
-    data class Widget(val widgetCode: WidgetCode) : ProductCode()
-    data class Gizmo(val gizmoCode: GizmoCode) : ProductCode()
+    data class Widget(val widgetCode: WidgetCode) : ProductCode() {
+        override fun toString(): String = widgetCode.value
+    }
+    data class Gizmo(val gizmoCode: GizmoCode) : ProductCode() {
+        override fun toString(): String = gizmoCode.value
+    }
 }
 
 @JvmInline
@@ -110,9 +115,19 @@ value class KilogramQuantity private constructor(val value: BigDecimal) {
     }
 }
 
-sealed class OrderQuantity
-data class UnitOrderQuantity(private val unitQuantity: UnitQuantity) : OrderQuantity()
-data class KilogramOrderQuantity(private val kilogramQuantity: KilogramQuantity) : OrderQuantity()
+sealed class OrderQuantity {
+
+    companion object {
+        fun create(productCode: ProductCode, quantity: BigDecimal): Validated<String, OrderQuantity> =
+            when (productCode) {
+                is ProductCode.Widget -> UnitQuantity.create(quantity.toInt()).map { OrderQuantity.Unit(it) }
+                is ProductCode.Gizmo -> KilogramQuantity.create(quantity).map { OrderQuantity.Kilogram(it) }
+            }
+    }
+
+    data class Unit(val unitQuantity: UnitQuantity) : OrderQuantity()
+    data class Kilogram(val kilogramQuantity: KilogramQuantity) : OrderQuantity()
+}
 
 @JvmInline
 value class Price private constructor(val value: BigDecimal) {

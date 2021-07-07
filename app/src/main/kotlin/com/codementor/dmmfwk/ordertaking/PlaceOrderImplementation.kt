@@ -2,6 +2,7 @@ package com.codementor.dmmfwk.ordertaking
 
 import arrow.core.*
 import arrow.core.computations.either
+import java.math.BigDecimal
 
 typealias CheckProductCodeExists =
     (ProductCode) -> Boolean
@@ -70,7 +71,7 @@ typealias AcknowledgeOrder =
 typealias CreateEvents =
     (PricedOrder, Option<OrderAcknowledgementSent>) -> List<PlacedOrderEvent>
 
-suspend fun toCustomerInfo (unvalidatedCustomerInfo: UnvalidatedCustomerInfo): Either<ValidationError, CustomerInfo> =
+suspend fun toCustomerInfo(unvalidatedCustomerInfo: UnvalidatedCustomerInfo): Either<ValidationError, CustomerInfo> =
     either {
         val firstName = unvalidatedCustomerInfo.firstName
             .let(String50::create)
@@ -132,5 +133,89 @@ suspend fun toAddress(checkedAddress: CheckedAddress): Either<ValidationError, A
             addressLine4 = addressLine4,
             city = city,
             zipCode = zipCode
+        )
+    }
+
+fun toCheckedAddress(
+    checkAddress: CheckAddressExists,
+    address: UnvalidatedAddress
+): Either<ValidationError, CheckedAddress> =
+    checkAddress(address).mapLeft { addressValidationError ->
+        when (addressValidationError) {
+            AddressValidationError.AddressNotFound -> ValidationError("Address not found")
+            AddressValidationError.InvalidFormat -> ValidationError("Address has bad format")
+        }
+    }
+
+fun toOrderId(orderId: String?): Validated<ValidationError, OrderId> =
+    OrderId.create(orderId).mapLeft { error -> ValidationError(error) }
+
+fun toOrderLineId(orderLineId: String): Validated<ValidationError, OrderLineId> =
+    OrderLineId.create(orderLineId).mapLeft { error -> ValidationError(error) }
+
+fun toProductCode(
+    checkProductCodeExists: CheckProductCodeExists,
+    productCode: String
+): Either<ValidationError, ProductCode> {
+
+    fun checkProduct(productCode: ProductCode) =
+        if (checkProductCodeExists(productCode)) productCode.right()
+        else ValidationError("Invalid: $productCode").left()
+
+    return ProductCode.create(productCode)
+        .mapLeft { error -> ValidationError(error) }
+        .toEither()
+        .flatMap(::checkProduct)
+}
+
+fun toOrderQuantity(
+    productCode: ProductCode,
+    quantity: BigDecimal
+): Either<ValidationError, OrderQuantity> =
+    OrderQuantity.create(productCode, quantity)
+        .mapLeft { error -> ValidationError(error) }
+        .toEither()
+
+suspend fun toValidatedOrderLine(
+    checkedProductCodeExists: CheckProductCodeExists,
+    unvalidatedOrderLine: UnvalidatedOrderLine
+): Either<ValidationError, ValidatedOrderLine> =
+    either {
+        val orderLineId = toOrderLineId(unvalidatedOrderLine.orderLineId).bind()
+        val productCode = toProductCode(checkedProductCodeExists, unvalidatedOrderLine.productCode).bind()
+        val quantity = toOrderQuantity(productCode, unvalidatedOrderLine.quantity).bind()
+
+        ValidatedOrderLine(
+            orderLineId = orderLineId,
+            productCode = productCode,
+            quantity = quantity
+        )
+    }
+
+suspend fun validateOrder(
+    checkProductCodeExists: CheckProductCodeExists,
+    checkAddress: CheckAddressExists,
+    unvalidatedOrder: UnvalidatedOrder
+): Either<ValidationError, ValidatedOrder> =
+    either {
+        val orderId = toOrderId(unvalidatedOrder.orderId).bind()
+        val customerInfo = toCustomerInfo(unvalidatedOrder.customerInfo).bind()
+        val shippingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.shippingAddress)
+            .flatMap { checkedAddress -> toAddress(checkedAddress) }
+            .bind()
+        val billingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.billingAddress)
+            .flatMap { checkedAddress -> toAddress(checkedAddress) }
+            .bind()
+        val lines = unvalidatedOrder.lines
+            .map { line -> toValidatedOrderLine(checkProductCodeExists, line) }
+            .sequenceEither()
+            .bind()
+
+        ValidatedOrder(
+            orderId = orderId,
+            customerInfo = customerInfo,
+            shippingAddress = shippingAddress,
+            billingAddress = billingAddress,
+            lines = lines
         )
     }
