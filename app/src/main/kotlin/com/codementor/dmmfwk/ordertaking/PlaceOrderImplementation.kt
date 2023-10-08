@@ -2,6 +2,7 @@ package com.codementor.dmmfwk.ordertaking
 
 import arrow.core.*
 import arrow.core.raise.either
+import arrow.core.raise.ensure
 import java.math.BigDecimal
 
 typealias CheckProductCodeExists =
@@ -158,9 +159,10 @@ fun toProductCode(
     productCode: String
 ): Either<ValidationError, ProductCode> {
 
-    fun checkProduct(productCode: ProductCode) =
-        if (checkProductCodeExists(productCode)) productCode.right()
-        else ValidationError("Invalid: $productCode").left()
+    fun checkProduct(productCode: ProductCode) = either {
+        ensure(checkProductCodeExists(productCode)) { ValidationError("Invalid: $productCode") }
+        productCode
+    }
 
     return ProductCode.create(productCode)
         .mapLeft { error -> ValidationError(error) }
@@ -177,42 +179,44 @@ fun toOrderQuantity(
 fun toValidatedOrderLine(
     checkedProductCodeExists: CheckProductCodeExists,
     unvalidatedOrderLine: UnvalidatedOrderLine
-): Either<ValidationError, ValidatedOrderLine> =
-    either {
-        val orderLineId = toOrderLineId(unvalidatedOrderLine.orderLineId).bind()
-        val productCode = toProductCode(checkedProductCodeExists, unvalidatedOrderLine.productCode).bind()
-        val quantity = toOrderQuantity(productCode, unvalidatedOrderLine.quantity).bind()
+): Either<ValidationError, ValidatedOrderLine> = either {
+    val orderLineId = toOrderLineId(unvalidatedOrderLine.orderLineId).bind()
+    val productCode = toProductCode(checkedProductCodeExists, unvalidatedOrderLine.productCode).bind()
+    val quantity = toOrderQuantity(productCode, unvalidatedOrderLine.quantity).bind()
 
-        ValidatedOrderLine(
-            orderLineId = orderLineId,
-            productCode = productCode,
-            quantity = quantity
-        )
-    }
+    ValidatedOrderLine(
+        orderLineId = orderLineId,
+        productCode = productCode,
+        quantity = quantity
+    )
+}
 
 fun validateOrder(
     checkProductCodeExists: CheckProductCodeExists,
     checkAddress: CheckAddressExists,
     unvalidatedOrder: UnvalidatedOrder
-): Either<ValidationError, ValidatedOrder> =
-    either {
-        val orderId = toOrderId(unvalidatedOrder.orderId).bind()
-        val customerInfo = toCustomerInfo(unvalidatedOrder.customerInfo).bind()
-        val shippingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.shippingAddress)
-            .flatMap { checkedAddress -> toAddress(checkedAddress) }
-            .bind()
-        val billingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.billingAddress)
-            .flatMap { checkedAddress -> toAddress(checkedAddress) }
-            .bind()
-        val lines = unvalidatedOrder.lines
-            .map { line -> toValidatedOrderLine(checkProductCodeExists, line) }
-            .bindAll()
+): Either<ValidationError, ValidatedOrder> = either {
+    val orderId = toOrderId(unvalidatedOrder.orderId).bind()
 
-        ValidatedOrder(
-            orderId = orderId,
-            customerInfo = customerInfo,
-            shippingAddress = shippingAddress,
-            billingAddress = billingAddress,
-            lines = lines
-        )
-    }
+    val customerInfo = toCustomerInfo(unvalidatedOrder.customerInfo).bind()
+
+    val shippingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.shippingAddress)
+        .flatMap { checkedAddress -> toAddress(checkedAddress) }
+        .bind()
+
+    val billingAddress = toCheckedAddress(checkAddress, unvalidatedOrder.billingAddress)
+        .flatMap { checkedAddress -> toAddress(checkedAddress) }
+        .bind()
+
+    val lines = unvalidatedOrder.lines
+        .map { line -> toValidatedOrderLine(checkProductCodeExists, line) }
+        .bindAll()
+
+    ValidatedOrder(
+        orderId = orderId,
+        customerInfo = customerInfo,
+        shippingAddress = shippingAddress,
+        billingAddress = billingAddress,
+        lines = lines
+    )
+}

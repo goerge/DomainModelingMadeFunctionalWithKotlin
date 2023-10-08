@@ -1,17 +1,19 @@
 package com.codementor.dmmfwk.ordertaking
 
 import arrow.core.*
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
+import arrow.core.raise.option
 import java.math.BigDecimal
 
 @JvmInline
 value class String50 private constructor(val value: String) {
     companion object {
-        fun create(value: String?): Either<String, String50> =
-            when {
-                value == null -> String50("").right()
-                value.length <= 50 -> String50(value).right()
-                else -> "String50 must not be more than 50 chars".left()
-            }
+        fun create(value: String?): Either<String, String50> = either {
+            ensure(value == null || value.length <= 50) { "String50 must not be more than 50 chars" }
+            String50(value ?: "")
+        }
 
         fun createOption(value: String?): Either<String, Option<String50>> =
             if (value == null) none<String50>().right()
@@ -38,9 +40,10 @@ value class ZipCode private constructor(val value: String) {
 @JvmInline
 value class OrderId private constructor(val value: String) {
     companion object {
-        fun create(value: String?): Either<String, OrderId> =
-            if (value == null) "OrderId is invalid".left()
-            else OrderId(value).right()
+        fun create(value: String?): Either<String, OrderId> = either {
+            ensureNotNull(value) { "OrderId is invalid" }
+            OrderId(value)
+        }
     }
 }
 
@@ -57,9 +60,12 @@ value class WidgetCode private constructor(val value: String) {
     companion object {
         private val widgetCodePattern = Regex("W[0-9]{4}")
 
-        fun create(value: String): Either<String, WidgetCode> =
-            if (value.matches(widgetCodePattern)) WidgetCode(value).right()
-            else "Widget code must follow format [Wxxxx], where each x is a digit (0-9)".left()
+        fun create(value: String): Either<String, WidgetCode> = either {
+            ensure(value.matches(widgetCodePattern)) {
+                "Widget code must follow format [Wxxxx], where each x is a digit (0-9)"
+            }
+            WidgetCode(value)
+        }
     }
 }
 
@@ -68,9 +74,12 @@ value class GizmoCode private constructor(val value: String) {
     companion object {
         private val gizmoCodePattern = Regex("G[0-9]{3}")
 
-        fun create(value: String): Either<String, GizmoCode> =
-            if (value.matches(gizmoCodePattern)) GizmoCode(value).right()
-            else "Gizmo code must follow format [Gxxx], where each x is a digit (0-9)".left()
+        fun create(value: String): Either<String, GizmoCode> = either {
+            ensure(value.matches(gizmoCodePattern)) {
+                "Gizmo code must follow format [Gxxx], where each x is a digit (0-9)"
+            }
+            GizmoCode(value)
+        }
     }
 }
 
