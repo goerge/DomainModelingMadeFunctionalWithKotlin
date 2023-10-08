@@ -1,7 +1,5 @@
 package com.codementor.dmmfwk.ordertaking
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.arrow.isLeft
@@ -10,11 +8,10 @@ import strikt.arrow.isSome
 import strikt.arrow.value
 import strikt.assertions.isEqualTo
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class ToAddressSpec {
 
     @Test
-    fun `converts minimal valid CheckedAddress to a ValidatedAddress`() = runBlockingTest {
+    fun `converts minimal valid CheckedAddress to a ValidatedAddress`() {
         val checkedAddress = CheckedAddress(
             addressLine1 = "Main Street 1/2/3",
             city = "Big City",
@@ -31,7 +28,7 @@ internal class ToAddressSpec {
     }
 
     @Test
-    fun `converts extended valid CheckedAddress to a ValidatedAddress`() = runBlockingTest {
+    fun `converts extended valid CheckedAddress to a ValidatedAddress`() {
         val checkedAddress = CheckedAddress(
             addressLine1 = "To",
             addressLine2 = "Mr Banks",
@@ -54,7 +51,7 @@ internal class ToAddressSpec {
     }
 
     @Test
-    fun `fails converting a CheckedAddress when address line 1 is too long`() = runBlockingTest {
+    fun `fails converting a CheckedAddress when address line 1 is too long`() {
         val checkedAddress = CheckedAddress(
             addressLine1 = "My Street".repeat(10),
             city = "The City",
@@ -67,7 +64,7 @@ internal class ToAddressSpec {
     }
 
     @Test
-    fun `fails converting a CheckedAddress when city is too long`() = runBlockingTest {
+    fun `fails converting a CheckedAddress when city is too long`() {
         val checkedAddress = CheckedAddress(
             addressLine1 = "My Street",
             city = "The City".repeat(10),

@@ -17,9 +17,7 @@ dependencies {
     // More functional Kotlin (:
     implementation("io.arrow-kt:arrow-core:1.2.1")
 
-    // Use the Kotlin test library.
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
     testImplementation("io.strikt:strikt-core:0.34.1")

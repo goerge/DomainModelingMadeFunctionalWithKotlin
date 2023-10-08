@@ -1,8 +1,5 @@
 package com.codementor.dmmfwk.ordertaking
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.arrow.isRight
@@ -11,11 +8,10 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.math.BigDecimal
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ToValidatedOrderLineSpec {
 
     @Test
-    fun `creates validated order line if input is valid and product exists`() = runBlockingTest {
+    fun `creates validated order line if input is valid and product exists`() {
         val productExists: CheckProductCodeExists = { _ -> true }
         val unvalidatedOrderLine = UnvalidatedOrderLine(
             orderLineId = "OL-123",

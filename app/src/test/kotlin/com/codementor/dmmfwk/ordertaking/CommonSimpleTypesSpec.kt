@@ -1,9 +1,10 @@
 package com.codementor.dmmfwk.ordertaking
 
-import arrow.core.valid
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.arrow.*
+import strikt.arrow.isLeft
+import strikt.arrow.isRight
+import strikt.arrow.value
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 

@@ -1,7 +1,7 @@
 package com.codementor.dmmfwk.ordertaking
 
 import arrow.core.*
-import arrow.core.computations.either
+import arrow.core.raise.either
 import java.math.BigDecimal
 
 typealias CheckProductCodeExists =
@@ -71,7 +71,7 @@ typealias AcknowledgeOrder =
 typealias CreateEvents =
     (PricedOrder, Option<OrderAcknowledgementSent>) -> List<PlacedOrderEvent>
 
-suspend fun toCustomerInfo(unvalidatedCustomerInfo: UnvalidatedCustomerInfo): Either<ValidationError, CustomerInfo> =
+fun toCustomerInfo(unvalidatedCustomerInfo: UnvalidatedCustomerInfo): Either<ValidationError, CustomerInfo> =
     either {
         val firstName = unvalidatedCustomerInfo.firstName
             .let(String50::create)
@@ -94,7 +94,7 @@ suspend fun toCustomerInfo(unvalidatedCustomerInfo: UnvalidatedCustomerInfo): Ei
         )
     }
 
-suspend fun toAddress(checkedAddress: CheckedAddress): Either<ValidationError, Address> =
+fun toAddress(checkedAddress: CheckedAddress): Either<ValidationError, Address> =
     either {
         val addressLine1 = checkedAddress.addressLine1
             .let(String50::create)
@@ -174,7 +174,7 @@ fun toOrderQuantity(
     OrderQuantity.create(productCode, quantity)
         .mapLeft { error -> ValidationError(error) }
 
-suspend fun toValidatedOrderLine(
+fun toValidatedOrderLine(
     checkedProductCodeExists: CheckProductCodeExists,
     unvalidatedOrderLine: UnvalidatedOrderLine
 ): Either<ValidationError, ValidatedOrderLine> =
@@ -190,7 +190,7 @@ suspend fun toValidatedOrderLine(
         )
     }
 
-suspend fun validateOrder(
+fun validateOrder(
     checkProductCodeExists: CheckProductCodeExists,
     checkAddress: CheckAddressExists,
     unvalidatedOrder: UnvalidatedOrder
@@ -206,8 +206,7 @@ suspend fun validateOrder(
             .bind()
         val lines = unvalidatedOrder.lines
             .map { line -> toValidatedOrderLine(checkProductCodeExists, line) }
-            .sequenceEither()
-            .bind()
+            .bindAll()
 
         ValidatedOrder(
             orderId = orderId,
