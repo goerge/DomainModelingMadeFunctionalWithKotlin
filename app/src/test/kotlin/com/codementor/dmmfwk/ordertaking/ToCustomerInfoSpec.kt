@@ -1,7 +1,5 @@
 package com.codementor.dmmfwk.ordertaking
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.arrow.isLeft
@@ -9,11 +7,10 @@ import strikt.arrow.isRight
 import strikt.arrow.value
 import strikt.assertions.isEqualTo
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class ToCustomerInfoSpec {
 
     @Test
-    fun `converts a valid UnvalidatedCustomerInfo to ValidatedCustomerInfo`() = runBlockingTest {
+    fun `converts a valid UnvalidatedCustomerInfo to ValidatedCustomerInfo`() {
         val unvalidatedCustomerInfo = UnvalidatedCustomerInfo(
             firstName = "Peter",
             lastName = "Parker",
@@ -30,7 +27,7 @@ internal class ToCustomerInfoSpec {
     }
 
     @Test
-    fun `fails to validate CustomerInfo when firstName is too long`() = runBlockingTest {
+    fun `fails to validate CustomerInfo when firstName is too long`() {
         val unvalidatedCustomerInfo = UnvalidatedCustomerInfo(
             firstName = "John".repeat(20),
             lastName = "Doe",
