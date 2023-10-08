@@ -6,15 +6,15 @@ import java.math.BigDecimal
 @JvmInline
 value class String50 private constructor(val value: String) {
     companion object {
-        fun create(value: String?): Validated<String, String50> =
+        fun create(value: String?): Either<String, String50> =
             when {
-                value == null -> String50("").valid()
-                value.length <= 50 -> String50(value).valid()
-                else -> "String50 must not be more than 50 chars".invalid()
+                value == null -> String50("").right()
+                value.length <= 50 -> String50(value).right()
+                else -> "String50 must not be more than 50 chars".left()
             }
 
-        fun createOption(value: String?): Validated<String, Option<String50>> =
-            if (value == null) none<String50>().valid()
+        fun createOption(value: String?): Either<String, Option<String50>> =
+            if (value == null) none<String50>().right()
             else create(value).map(String50::some)
     }
 }
@@ -22,33 +22,33 @@ value class String50 private constructor(val value: String) {
 @JvmInline
 value class EmailAddress private constructor(val value: String) {
     companion object {
-        fun create(value: String?): Validated<String, EmailAddress> =
-            EmailAddress(value ?: "").valid()
+        fun create(value: String?): Either<String, EmailAddress> =
+            EmailAddress(value ?: "").right()
     }
 }
 
 @JvmInline
 value class ZipCode private constructor(val value: String) {
     companion object {
-        fun create(value: String): Validated<String, ZipCode> =
-            ZipCode(value).valid()
+        fun create(value: String): Either<String, ZipCode> =
+            ZipCode(value).right()
     }
 }
 
 @JvmInline
 value class OrderId private constructor(val value: String) {
     companion object {
-        fun create(value: String?): Validated<String, OrderId> =
-            if (value == null) "OrderId is invalid".invalid()
-            else OrderId(value).valid()
+        fun create(value: String?): Either<String, OrderId> =
+            if (value == null) "OrderId is invalid".left()
+            else OrderId(value).right()
     }
 }
 
 @JvmInline
 value class OrderLineId private constructor(val value: String) {
     companion object {
-        fun create(value: String): Validated<String, OrderLineId> =
-            OrderLineId(value).valid()
+        fun create(value: String): Either<String, OrderLineId> =
+            OrderLineId(value).right()
     }
 }
 
@@ -57,9 +57,9 @@ value class WidgetCode private constructor(val value: String) {
     companion object {
         private val widgetCodePattern = Regex("W[0-9]{4}")
 
-        fun create(value: String): Validated<String, WidgetCode> =
-            if (value.matches(widgetCodePattern)) WidgetCode(value).valid()
-            else "Widget code must follow format [Wxxxx], where each x is a digit (0-9)".invalid()
+        fun create(value: String): Either<String, WidgetCode> =
+            if (value.matches(widgetCodePattern)) WidgetCode(value).right()
+            else "Widget code must follow format [Wxxxx], where each x is a digit (0-9)".left()
     }
 }
 
@@ -68,16 +68,16 @@ value class GizmoCode private constructor(val value: String) {
     companion object {
         private val gizmoCodePattern = Regex("G[0-9]{3}")
 
-        fun create(value: String): Validated<String, GizmoCode> =
-            if (value.matches(gizmoCodePattern)) GizmoCode(value).valid()
-            else "Gizmo code must follow format [Gxxx], where each x is a digit (0-9)".invalid()
+        fun create(value: String): Either<String, GizmoCode> =
+            if (value.matches(gizmoCodePattern)) GizmoCode(value).right()
+            else "Gizmo code must follow format [Gxxx], where each x is a digit (0-9)".left()
     }
 }
 
 sealed class ProductCode {
 
     companion object {
-        fun create(value: String): Validated<String, ProductCode> =
+        fun create(value: String): Either<String, ProductCode> =
             when {
                 value.startsWith("W") -> value
                     .let(WidgetCode::create)
@@ -87,7 +87,7 @@ sealed class ProductCode {
                     .let(GizmoCode::create)
                     .map(::Gizmo)
 
-                else -> "Product code must start with either W for Widget code or G for Gizmo code".invalid()
+                else -> "Product code must start with either W for Widget code or G for Gizmo code".left()
             }
     }
 
@@ -102,23 +102,23 @@ sealed class ProductCode {
 @JvmInline
 value class UnitQuantity private constructor(val value: Int) {
     companion object {
-        fun create(value: Int): Validated<String, UnitQuantity> =
-            UnitQuantity(value).valid()
+        fun create(value: Int): Either<String, UnitQuantity> =
+            UnitQuantity(value).right()
     }
 }
 
 @JvmInline
 value class KilogramQuantity private constructor(val value: BigDecimal) {
     companion object {
-        fun create(value: BigDecimal): Validated<String, KilogramQuantity> =
-            KilogramQuantity(value).valid()
+        fun create(value: BigDecimal): Either<String, KilogramQuantity> =
+            KilogramQuantity(value).right()
     }
 }
 
 sealed class OrderQuantity {
 
     companion object {
-        fun create(productCode: ProductCode, quantity: BigDecimal): Validated<String, OrderQuantity> =
+        fun create(productCode: ProductCode, quantity: BigDecimal): Either<String, OrderQuantity> =
             when (productCode) {
                 is ProductCode.Widget -> UnitQuantity.create(quantity.toInt()).map { OrderQuantity.Unit(it) }
                 is ProductCode.Gizmo -> KilogramQuantity.create(quantity).map { OrderQuantity.Kilogram(it) }
@@ -132,15 +132,15 @@ sealed class OrderQuantity {
 @JvmInline
 value class Price private constructor(val value: BigDecimal) {
     companion object {
-        fun create(value: BigDecimal): Validated<String, Price> =
-            Price(value).valid()
+        fun create(value: BigDecimal): Either<String, Price> =
+            Price(value).right()
     }
 }
 
 @JvmInline
 value class BillingAmount private constructor(val value: BigDecimal) {
     companion object {
-        fun create(value: BigDecimal): Validated<String, BillingAmount> =
-            BillingAmount(value).valid()
+        fun create(value: BigDecimal): Either<String, BillingAmount> =
+            BillingAmount(value).right()
     }
 }
