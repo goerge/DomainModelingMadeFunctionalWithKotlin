@@ -147,10 +147,10 @@ fun toCheckedAddress(
         }
     }
 
-fun toOrderId(orderId: String?): Validated<ValidationError, OrderId> =
+fun toOrderId(orderId: String?): Either<ValidationError, OrderId> =
     OrderId.create(orderId).mapLeft { error -> ValidationError(error) }
 
-fun toOrderLineId(orderLineId: String): Validated<ValidationError, OrderLineId> =
+fun toOrderLineId(orderLineId: String): Either<ValidationError, OrderLineId> =
     OrderLineId.create(orderLineId).mapLeft { error -> ValidationError(error) }
 
 fun toProductCode(
@@ -164,7 +164,6 @@ fun toProductCode(
 
     return ProductCode.create(productCode)
         .mapLeft { error -> ValidationError(error) }
-        .toEither()
         .flatMap(::checkProduct)
 }
 
@@ -174,7 +173,6 @@ fun toOrderQuantity(
 ): Either<ValidationError, OrderQuantity> =
     OrderQuantity.create(productCode, quantity)
         .mapLeft { error -> ValidationError(error) }
-        .toEither()
 
 suspend fun toValidatedOrderLine(
     checkedProductCodeExists: CheckProductCodeExists,
